@@ -3,7 +3,7 @@
 ## In this demo project using libs hilt, Coroutines and more.
 
 # Installation
-## Install the application, first asks for permission of accress of gallery images. if deny press it goes to settings screen and allow permission manualy.
+## Install the application, first asks for permission of access of gallery images. if deny press it goes to settings screen and allow permission manualy.
 
 # Application work process
 ## Here is displaying search and list/grid options on the bar.
