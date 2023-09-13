@@ -30,7 +30,7 @@ class PhotoRepository @Inject constructor(private val queryInterface: QueryInter
 
     private val mainDispatcher by lazy { Dispatchers.Main }
 
-    suspend fun <T> callApi(
+    suspend fun <T> callQuery(
         loader: Boolean = true,
         callHandler: CallHandler<T>
     ) {

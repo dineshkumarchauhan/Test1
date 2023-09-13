@@ -71,7 +71,7 @@ class Detail : Fragment() {
 
 
 
-
+    // Creating menus
     private fun createMenu(menuHost: MenuHost) {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -104,7 +104,7 @@ class Detail : Fragment() {
 
 
 
-
+    // used for orientation changes
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         MainActivity.orientation = getResources().getConfiguration().orientation

@@ -10,7 +10,7 @@ import java.util.Calendar
 import java.util.Date
 import javax.inject.Inject
 
-class QueryClass @Inject constructor(): QueryInterface {
+class QueryClass @Inject constructor(): QueryInterface { // retuns gallery data
     var galleryImageUrls: ArrayList<ItemPhoto> = ArrayList()
     @SuppressLint("SuspiciousIndentation")
     override suspend fun getQuery(page: String): List<ItemPhoto> {

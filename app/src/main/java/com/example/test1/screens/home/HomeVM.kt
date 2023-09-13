@@ -27,7 +27,7 @@ class HomeVM @Inject constructor( private val foodRepository: PhotoRepository): 
 
     fun getAllPhotos(query: CharSequence) {
         viewModelScope.launch {
-            foodRepository.callApi(
+            foodRepository.callQuery(
                 callHandler = object : CallHandler<List<ItemPhoto>> {
                     override suspend fun sendRequest(queryInterface: QueryInterface) =
                         queryInterface.getQuery(query.toString())

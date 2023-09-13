@@ -67,6 +67,7 @@ class Home : Fragment() {
     }
 
 
+    // Creating menus
     private fun createMenu(menuHost: MenuHost) {
         menuHost.addMenuProvider(object : MenuProvider {
             override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -111,7 +112,7 @@ class Home : Fragment() {
         },viewLifecycleOwner, Lifecycle.State.RESUMED)
     }
 
-
+// image access media permission callback
     var requestPermission =
         registerForActivityResult(RequestMultiplePermissions()) { permissions ->
             permissions.forEach { actionMap ->
@@ -138,6 +139,8 @@ class Home : Fragment() {
             }
         }
 
+
+    // observavle live data with handle errors
     private fun loadData() {
         if (MainActivity.orientation == Configuration.ORIENTATION_PORTRAIT){
             layoutManager = GridLayoutManager(requireContext(), phonePortLandSpan)
@@ -173,6 +176,8 @@ class Home : Fragment() {
         checkPermission()
     }
 
+
+    //check permission if above from Api level 33
     private fun checkPermission() {
         requestPermission.launch(
             arrayOf(if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
@@ -183,6 +188,8 @@ class Home : Fragment() {
         )
     }
 
+
+    // used for orientation changes
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         MainActivity.orientation = getResources().getConfiguration().orientation
