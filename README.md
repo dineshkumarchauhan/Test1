@@ -1,10 +1,10 @@
 # Test1 Demo is using technologies and pattern like Clean Architecture with MVVM, view binding.
 # In this demo project using libs Repository, hilt, Coroutines and more.
 
-Installation
+## Installation
 # Install the application, first asks for permission of accress of gallery images. if deny press it goes to settings screen and allow permission manualy.
 
-Application work process
+## Application work process
 # Here is displaying search and list/grid options on the bar.
 # Search any thing on the search and it displays the results, result can list and grid in both view.
 # Search handles the like query and results only from last 1 week in desc order by date.
