@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Test1</string>
+    <string name="search_title">Search</string>
+    <string name="no_internet_connection">No internet connection</string>
+    <string name="no_image_found">No image found</string>
+
+
+</resources>
