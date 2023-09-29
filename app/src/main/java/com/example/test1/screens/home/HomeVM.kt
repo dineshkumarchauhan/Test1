@@ -1,56 +1,74 @@
 package com.example.test1.screens.home
 
-import android.util.Log
-import androidx.lifecycle.MutableLiveData
+import android.view.LayoutInflater
+import android.view.ViewGroup
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.test1.MainActivity
-import com.example.test1.R
-import com.example.test1.di.PhotoRepository
-import com.example.test1.photoDB.QueryInterface
-import com.example.test1.photoDB.CallHandler
-import com.example.test1.photoDB.ErrorHandler
-import com.example.test1.models.ItemPhoto
-import com.example.test1.screens.adapter.AdapterType
-import com.example.test1.screens.adapter.SimpleAdapter
+import com.demo.genericAdapter.GenericAdapter
+import com.demo.model.ItemProducts
+import com.demo.model.Result
+import com.demo.networking.ApiInterface
+import com.demo.networking.CallHandler
+import com.demo.networking.ErrorHandler
+import com.demo.networking.Repository
+import com.example.test1.databinding.ListItemBinding
+import com.squareup.picasso.Picasso
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
+import retrofit2.Response
 
 @HiltViewModel
-class HomeVM @Inject constructor( private val foodRepository: PhotoRepository): ViewModel() {
-        var photosAdapter = SimpleAdapter(null, AdapterType.Home)
+class HomeVM @Inject constructor( private val foodRepository: Repository): ViewModel() {
 
-    private val _notesLiveData = MutableLiveData<ErrorHandler<List<ItemPhoto>>>()
-    val notesLiveData get() = _notesLiveData
+    val photosAdapter = object : GenericAdapter<ListItemBinding, Result>() {
+        override fun onCreateView(
+            inflater: LayoutInflater,
+            parent: ViewGroup,
+            viewType: Int
+        ) = ListItemBinding.inflate(inflater, parent, false)
 
-    fun getAllPhotos(query: CharSequence) {
+        override fun onBindHolder(binding: ListItemBinding, dataClass: Result, position: Int) {
+            binding.txtTitle.text = dataClass.name
+            binding.txtDesc.text = dataClass.vicinity
+
+            Picasso.get().load(if (dataClass.photos.size > 0)
+                dataClass.photos[0].imgUrl else ""
+            ).into(binding!!.ivIcon)
+
+            binding.root.setOnClickListener {
+            }
+        }
+    }
+
+
+
+    fun getProducts(callBack: ItemProducts.() -> Unit){
         viewModelScope.launch {
-            foodRepository.callQuery(
-                callHandler = object : CallHandler<List<ItemPhoto>> {
-                    override suspend fun sendRequest(queryInterface: QueryInterface) =
-                        queryInterface.getQuery(query.toString())
-                    override fun success(response: List<ItemPhoto>) {
-                        if(response.size != 0){
-                            _notesLiveData.postValue(ErrorHandler.Success(response))
-                        }else{
-                            _notesLiveData.postValue(ErrorHandler.Error(MainActivity.context.get()!!.getString(
-                                R.string.no_image_found)))
+            foodRepository.callApi(
+                callHandler = object : CallHandler<Response<ItemProducts>> {
+                    override suspend fun sendRequest(apiInterface: ApiInterface) =
+                        apiInterface.getProducts()
+
+                    override fun success(response: Response<ItemProducts>) {
+                        if (response.isSuccessful){
+                            callBack(response.body()!!)
                         }
                     }
+
                     override fun error(message: String) {
                         super.error(message)
-                        _notesLiveData.postValue(ErrorHandler.Error(MainActivity.context.get()!!.getString(
-                            R.string.no_image_found)))
                     }
+
                     override fun loading() {
                         super.loading()
-                        _notesLiveData.postValue(ErrorHandler.Loading())
                     }
                 }
             )
         }
+
+
     }
+
 
 }

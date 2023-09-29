@@ -17,6 +17,7 @@ import androidx.swiperefreshlayout.widget.CircularProgressDrawable
 import com.example.test1.MainActivity
 import com.example.test1.R
 import com.google.android.material.snackbar.Snackbar
+import org.json.JSONObject
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -85,19 +86,41 @@ fun showSnackBar(string: String) = try {
 
 
 
-const val phonePortSpan = 1
-const val phonePortLandSpan = 2
-const val phoneGridLandSpan = 4
 
-@RequiresApi(Build.VERSION_CODES.O)
-fun String.dateConvert(): String {
-    val formatter = DateTimeFormatter.ofPattern("dd/MM/yy hh:mm a");
-    val instant = Instant.ofEpochMilli(this.toLong())
-    val date = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
-    return formatter.format(date).uppercase()
+
+
+
+/**
+ * Handle Error Messages
+ * */
+fun Any?.getErrorMessage(): String = when (this) {
+    is Throwable -> this.message.getResponseError()
+    else -> this.toString().getResponseError()
 }
 
-
+/**
+ * Get Response error
+ * */
+fun String?.getResponseError(): String {
+    if (this.isNullOrEmpty()) return ""
+    return try {
+        val jsonObject = JSONObject(this)
+        if (jsonObject.has("message")) {
+            jsonObject.getString("message")
+        } else if (jsonObject.has("errors")) {
+            val array = jsonObject.getJSONArray("errors")
+            if (array.length() > 0) {
+                array.getJSONObject(0)?.let {
+                    if (it.has("message"))
+                        return it.getString("message")
+                }
+            }
+            this
+        } else this
+    } catch (e: Exception) {
+        this
+    }
+}
 fun Context.isTablet(): Boolean {
     return this.resources.configuration.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK >= Configuration.SCREENLAYOUT_SIZE_LARGE
 }

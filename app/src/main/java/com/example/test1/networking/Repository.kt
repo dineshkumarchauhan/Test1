@@ -1,4 +1,5 @@
-package com.example.test1.di
+package com.demo.networking
+
 
 import android.app.AlertDialog
 import android.content.Context
@@ -7,53 +8,65 @@ import android.graphics.drawable.ColorDrawable
 import android.view.LayoutInflater
 import com.example.test1.MainActivity
 import com.example.test1.databinding.LoaderBinding
-import com.example.test1.photoDB.QueryInterface
-import com.example.test1.photoDB.CallHandler
+import com.example.test1.utils.getErrorMessage
 import com.example.test1.utils.hideSoftKeyBoard
 import com.example.test1.utils.ioDispatcher
 import com.example.test1.utils.mainThread
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.onStart
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import retrofit2.Response
+import java.io.IOException
 import javax.inject.Inject
 
-class PhotoRepository @Inject constructor(private val queryInterface: QueryInterface) {
-    var alertDialog: AlertDialog? = null
+@Suppress("UNCHECKED_CAST")
+class Repository @Inject constructor(
+    private val apiInterface: ApiInterface
+) {
 
     private val mainDispatcher by lazy { Dispatchers.Main }
+    var alertDialog: AlertDialog? = null
 
-    suspend fun <T> callQuery(
+
+    /**
+     * Call Api
+     * */
+    suspend fun <T> callApi(
         loader: Boolean = true,
         callHandler: CallHandler<T>
     ) {
 
+        /**
+         * Hide Soft Keyboard
+         * */
         hideSoftKeyBoard()
 
+
+        /**
+         * Coroutine Exception Handler
+         * */
         val coRoutineExceptionHandler = CoroutineExceptionHandler { _, throwable ->
             throwable.printStackTrace()
             mainThread {
                 throwable.message.let {
                     hideLoader()
-                    if (it != null) {
-                        callHandler.error(it)
-                    }
+                    callHandler.error(it.getErrorMessage())
                 }
             }
         }
 
+
+
+
+        /**
+         * Call Api
+         * */
         CoroutineScope(Dispatchers.IO + coRoutineExceptionHandler + Job()).launch {
             flow {
-                emit(callHandler.sendRequest(queryInterface = queryInterface))
+                emit(callHandler.sendRequest(apiInterface = apiInterface) as Response<*>)
             }.flowOn(ioDispatcher)
-                .onStart {
+                .retryWhen { cause, attempt ->
+                    (attempt < HttpStatusCode.RETRY_COUNT) && (cause is IOException)
+                }.onStart {
                     callHandler.loading()
                     withContext(mainDispatcher) {
                         if (loader) MainActivity.context?.get()?.showLoader()
@@ -61,21 +74,25 @@ class PhotoRepository @Inject constructor(private val queryInterface: QueryInter
                 }.catch { error ->
                     withContext(mainDispatcher) {
                         hideLoader()
-                        error.message?.let { callHandler.error(it) }
+                        callHandler.error(error.getErrorMessage())
                     }
                 }.collect { response ->
                     withContext(mainDispatcher) {
                         hideLoader()
-                        callHandler.success(response as T)
+                        if (response.isSuccessful)
+                            callHandler.success(response as T)
+                        else
+                            response.errorBody()?.string()
+                                ?.let { callHandler.error(it.getErrorMessage()) }
                     }
                 }
         }
     }
 
 
-
-
-
+    /**
+     * Show Loader
+     * */
     private fun Context.showLoader() {
         if (alertDialog == null) {
             val alert = AlertDialog.Builder(this)
@@ -84,9 +101,7 @@ class PhotoRepository @Inject constructor(private val queryInterface: QueryInter
             alert.setCancelable(false)
             alertDialog = alert.create()
             alertDialog?.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-            if(alertDialog != null) {
-                alertDialog?.show()
-            }
+            alertDialog?.show()
         }
     }
 
@@ -95,10 +110,10 @@ class PhotoRepository @Inject constructor(private val queryInterface: QueryInter
      * Hide Loader
      * */
     private fun hideLoader() {
-        if(alertDialog != null) {
-            alertDialog?.cancel()
-            alertDialog = null
-        }
-
+        alertDialog?.dismiss()
+        alertDialog = null
     }
+
+
+
 }

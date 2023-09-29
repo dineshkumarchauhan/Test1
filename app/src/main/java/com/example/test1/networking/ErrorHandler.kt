@@ -1,4 +1,6 @@
-package com.example.test1.photoDB
+package com.demo.networking
+
+
 
 sealed class ErrorHandler<T> (
     var data: T? = null,
