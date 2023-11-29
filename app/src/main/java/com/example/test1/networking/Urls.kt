@@ -1,6 +1,6 @@
 package com.demo.networking
 
-
-const val Products = "final.json"
-const val URL = "https://codejudge-question-artifacts.s3.ap-south-1.amazonaws.com/q-1731/"
+const val URL = "https://api.github.com/"
+const val Items = "search/repositories?"
+const val Contributors = "contributors?"
 

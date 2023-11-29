@@ -1,61 +1,61 @@
-package com.example.test1.screens.home
+package com.demo.ui.detail
 
-import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.navigation.findNavController
 import com.demo.genericAdapter.GenericAdapter
 import com.demo.networking.ApiInterface
 import com.demo.networking.CallHandler
 import com.demo.networking.Repository
-import com.example.test1.R
 import com.example.test1.databinding.ListItemBinding
-import com.example.test1.models.Item
-import com.example.test1.models.Items
+import com.example.test1.models.ItemContributors
+import com.example.test1.models.ItemContributorsItem
 import com.squareup.picasso.Picasso
+
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 import retrofit2.Response
+import javax.inject.Inject
 
 @HiltViewModel
-class HomeVM @Inject constructor( private val repository: Repository): ViewModel() {
-
-    val photosAdapter = object : GenericAdapter<ListItemBinding, Item>() {
+class DetailVM @Inject constructor(
+    private val repository: Repository
+) : ViewModel() {
+    val photosAdapter = object : GenericAdapter<ListItemBinding, ItemContributorsItem>() {
         override fun onCreateView(
             inflater: LayoutInflater,
             parent: ViewGroup,
             viewType: Int
         ) = ListItemBinding.inflate(inflater, parent, false)
 
-        override fun onBindHolder(binding: ListItemBinding, dataClass: Item, position: Int) {
-            binding.txtTitle.text = dataClass.name
+        override fun onBindHolder(binding: ListItemBinding, dataClass: ItemContributorsItem, position: Int) {
+            binding.txtTitle.text = dataClass.login
             Picasso.get().load(
-                dataClass.owner.avatar_url
+                dataClass.avatar_url
             ).into(binding!!.ivIcon)
-            binding.root.setOnClickListener {
-                it.findNavController().navigate(R.id.detail, Bundle().apply {
-                    putParcelable("data", dataClass)
-                })
-            }
+
         }
     }
 
 
-    private var result = MutableLiveData<Items>()
-    val readResult : LiveData<Items> get() = result
 
-    fun getProducts(query: String?){
+
+
+    private var result = MutableLiveData<ItemContributors>()
+    val readResult : LiveData<ItemContributors> get() = result
+
+    fun getContributors(login: String?, name: String?){
         viewModelScope.launch {
             repository.callApi(
-                callHandler = object : CallHandler<Response<Items>> {
+                callHandler = object : CallHandler<Response<ItemContributors>> {
                     override suspend fun sendRequest(apiInterface: ApiInterface) =
-                        apiInterface.getItems(""+query)
-                    override fun success(response: Response<Items>) {
+                        apiInterface.getContributors(login!!,name!!)
+
+                    override fun success(response: Response<ItemContributors>) {
                         if (response.isSuccessful){
                             result.value = response.body()
                         }
@@ -74,6 +74,4 @@ class HomeVM @Inject constructor( private val repository: Repository): ViewModel
 
 
     }
-
-
 }

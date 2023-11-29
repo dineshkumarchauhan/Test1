@@ -7,7 +7,6 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.SearchView.OnQueryTextListener
 import androidx.core.view.MenuHost
@@ -15,30 +14,27 @@ import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.recyclerview.widget.RecyclerView
-import com.demo.model.Result
-import com.demo.networking.ErrorHandler
+import androidx.lifecycle.Observer
 import com.example.test1.R
+import com.example.test1.databinding.HomeBinding
+import com.example.test1.models.Item
 import dagger.hilt.android.AndroidEntryPoint
-
-
 
 @AndroidEntryPoint
 class Home : Fragment() {
     private val viewModel: HomeVM by viewModels()
-    lateinit var recyclerView: RecyclerView
-    lateinit var txtMsg: TextView
+    private var _binding: HomeBinding? = null
+    private val binding get() = _binding!!
 
-    var items : ArrayList<Result> = ArrayList()
-    var itemMain : ArrayList<Result> ?= ArrayList()
+    var itemMain : ArrayList<Item> ?= ArrayList()
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        _binding = HomeBinding.inflate(inflater)
+        return binding.root
         val view = inflater.inflate(R.layout.home, container, false)
-        recyclerView = view.findViewById(R.id.recyclerView)
-        txtMsg = view.findViewById(R.id.txtMsg)
         return view
     }
 
@@ -47,23 +43,22 @@ class Home : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val menuHost: MenuHost = requireActivity()
         createMenu(menuHost)
-        recyclerView.setHasFixedSize(true)
-        recyclerView.adapter = viewModel.photosAdapter
-
-
-        viewModel.getProducts() {
-            if (this != null) {
-                itemMain = this?.results!!
+        binding.recyclerView.setHasFixedSize(true)
+        binding.recyclerView.adapter = viewModel.photosAdapter
+        viewModel.readResult.observe(viewLifecycleOwner, Observer {
+            if (it != null) {
+                itemMain = it?.items!!
                 viewModel.photosAdapter.submitList(itemMain)
                 if(itemMain?.isEmpty() == true){
-                    txtMsg.visibility = View.VISIBLE
+                    binding.txtMsg.visibility = View.VISIBLE
                 }else{
-                    txtMsg.visibility = View.GONE
+                    binding.txtMsg.visibility = View.GONE
                 }
             }
             viewModel.photosAdapter.notifyDataSetChanged()
-        }
+        })
 
+//        viewModel.getProducts("a")
 
     }
 
@@ -76,27 +71,11 @@ class Home : Fragment() {
                 var search = (menu?.findItem(R.id.search)?.actionView as SearchView)
                 search.setOnQueryTextListener(object : OnQueryTextListener {
                     override fun onQueryTextSubmit(query: String?): Boolean {
+                        viewModel.getProducts(query)
                         return false
                     }
 
                     override fun onQueryTextChange(newText: String?): Boolean {
-                        if(newText.toString().isEmpty()){
-                            viewModel.photosAdapter.submitList(itemMain)
-                            if(itemMain?.isEmpty() == true){
-                                txtMsg.visibility = View.VISIBLE
-                            }else{
-                                txtMsg.visibility = View.GONE
-                            }
-                        }else{
-                            items = itemMain?.filter { s -> s.name.lowercase().contains(newText.toString().lowercase()) } as ArrayList<Result>
-                            viewModel.photosAdapter.submitList(items)
-                            if(items.isEmpty() == true){
-                                txtMsg.visibility = View.VISIBLE
-                            }else{
-                                txtMsg.visibility = View.GONE
-                            }
-                        }
-                        viewModel.photosAdapter.notifyDataSetChanged()
                         return false
                     }
                 })

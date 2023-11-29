@@ -52,7 +52,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:includeFontPadding="false"
-            android:text="Desc"
+            android:text=""
             android:textAllCaps="false"
             android:textColor="@color/_e8ebee"
             android:textSize="@dimen/_10ssp"

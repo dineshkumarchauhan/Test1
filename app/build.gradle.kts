@@ -5,6 +5,7 @@ plugins {
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id ("kotlin-parcelize")
+
 }
 
 android {
@@ -44,6 +45,7 @@ android {
         compose = true
         dataBinding = true
         viewBinding = true
+
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.4.3"
@@ -57,6 +59,8 @@ android {
     kapt {
         correctErrorTypes = true
     }
+
+
 }
 
 dependencies {
